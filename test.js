@@ -1,5 +1,5 @@
 const { expect } = require('chai');
-const ShiroPerms = require('./ShiroPerms');
+const ShiroPerms = require('./index');
 
 const perms = new ShiroPerms();
 
