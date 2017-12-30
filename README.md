@@ -19,9 +19,12 @@ and use a Trie data structure for performance
         * [.toString()](#ShiroPerms+toString) ⇒ <code>String</code>
         * [.load([trie])](#ShiroPerms+load) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
         * [.dump()](#ShiroPerms+dump) ⇒ <code>String</code>
+        * [.dumpBin()](#ShiroPerms+dumpBin) ⇒ <code>Buffer</code>
+        * [.loadBin(data)](#ShiroPerms+loadBin) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
     * _static_
         * [.from(...claims)](#ShiroPerms.from) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
         * [.fromTrie([trie])](#ShiroPerms.fromTrie) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
+        * [.fromBin(data)](#ShiroPerms.fromBin) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
 
 <a name="new_ShiroPerms_new"></a>
 
@@ -63,7 +66,7 @@ Accept multiple claim string with claims separated by space char ' '
 
 | Param | Type | Default |
 | --- | --- | --- |
-| [claims] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> | 
+| [claims] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> |
 
 **Example**  
 ```js
@@ -87,7 +90,7 @@ Accept multiple claim string with claims separated by space char ' '
 
 | Param | Type | Default |
 | --- | --- | --- |
-| [claims] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> | 
+| [claims] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> |
 
 <a name="ShiroPerms+check"></a>
 
@@ -148,6 +151,23 @@ Dumps current Trie to JSON.
 
 **Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
 **Returns**: <code>String</code> - Trie in JSON format  
+<a name="ShiroPerms+dumpBin"></a>
+
+### shiroPerms.dumpBin() ⇒ <code>Buffer</code>
+Dumps current Trie to bin format (msgpack5).
+
+**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
+<a name="ShiroPerms+loadBin"></a>
+
+### shiroPerms.loadBin(data) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
+Loads Trie from a bin format data (msgpack5)
+
+**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| data | <code>Buffer</code> | Data to load |
+
 <a name="ShiroPerms.from"></a>
 
 ### ShiroPerms.from(...claims) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
@@ -170,3 +190,13 @@ Creates new ShiroPerms object from a Trie object
 | --- | --- | --- | --- |
 | [trie] | <code>Object</code> \| <code>String</code> | <code>{}</code> | Trie object or JSON |
 
+<a name="ShiroPerms.fromBin"></a>
+
+### ShiroPerms.fromBin(data) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
+Creates new ShiroPerms object from a Trie object in bin format (msgpack5)
+
+**Kind**: static method of [<code>ShiroPerms</code>](#ShiroPerms)  
+
+| Param | Type |
+| --- | --- |
+| data | <code>Buffer</code> |
