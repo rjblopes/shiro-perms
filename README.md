@@ -1,202 +1,108 @@
-<a name="ShiroPerms"></a>
 
-## ShiroPerms
-Defines and checks permissions with claims written in Apache Shiro style
-and use a Trie data structure for performance
+# Shiro Perms
 
-**Kind**: global class  
+Create, check and manipulate permissions using a Trie data object and Apache Shiro write style.
 
-* [ShiroPerms](#ShiroPerms)
-    * [new ShiroPerms([claims])](#new_ShiroPerms_new)
-    * _instance_
-        * [.claims](#ShiroPerms+claims) : <code>Array.&lt;String&gt;</code>
-        * [.trie](#ShiroPerms+trie) : <code>object</code>
-        * [.reset()](#ShiroPerms+reset) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-        * [.add([claims])](#ShiroPerms+add) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-        * [.remove([claims])](#ShiroPerms+remove) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-        * [.check([permissions], [any])](#ShiroPerms+check) ⇒ <code>Boolean</code>
-        * [.checkAny([permissions])](#ShiroPerms+checkAny) ⇒ <code>Boolean</code>
-        * [.toString()](#ShiroPerms+toString) ⇒ <code>String</code>
-        * [.load([trie])](#ShiroPerms+load) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-        * [.dump()](#ShiroPerms+dump) ⇒ <code>String</code>
-        * [.dumpBin()](#ShiroPerms+dumpBin) ⇒ <code>Buffer</code>
-        * [.loadBin(data)](#ShiroPerms+loadBin) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-    * _static_
-        * [.from(...claims)](#ShiroPerms.from) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-        * [.fromTrie([trie])](#ShiroPerms.fromTrie) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-        * [.fromBin(data)](#ShiroPerms.fromBin) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
+## Getting Started
 
-<a name="new_ShiroPerms_new"></a>
+Module exposes a class that can be used to create permissions objects. Each instance object represents a set of credentials which can be manipulated and verified using instance methods.   
 
-### new ShiroPerms([claims])
-Creates a new ShiroPerms instance with specified claims.
-Claims may be added or removed later.
-
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [claims] | <code>Array.&lt;String&gt;</code> | <code>[]</code> | Claims to create the object with. |
-
-<a name="ShiroPerms+claims"></a>
-
-### shiroPerms.claims : <code>Array.&lt;String&gt;</code>
-A list of current claims
-
-**Kind**: instance property of [<code>ShiroPerms</code>](#ShiroPerms)  
-<a name="ShiroPerms+trie"></a>
-
-### shiroPerms.trie : <code>object</code>
-Returns current permissions Trie object
-
-**Kind**: instance property of [<code>ShiroPerms</code>](#ShiroPerms)  
-<a name="ShiroPerms+reset"></a>
-
-### shiroPerms.reset() ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Removes all permissions from the Trie
-
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-**Returns**: [<code>ShiroPerms</code>](#ShiroPerms) - this  
-<a name="ShiroPerms+add"></a>
-
-### shiroPerms.add([claims]) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Add claims to permission Trie
-Accept multiple claim string with claims separated by space char ' '
-
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-
-| Param | Type | Default |
-| --- | --- | --- |
-| [claims] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> |
-
-**Example**  
 ```js
-// Single claim
-perms.add('store:view');
-
-// Claim array
-perms.add(['store:view', 'store:edit:1234']);
-
-// Mutiple claim string
-perms.add('store:view store:edit:1234');
+const ShiroPerms = require('shiro-perms');
 ```
-<a name="ShiroPerms+remove"></a>
 
-### shiroPerms.remove([claims]) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Remove claims from the Trie.
-Claims in Shiro compact format are not allowed, e.g. 'store:view,edit'.
-Accept multiple claim string with claims separated by space char ' '
+```js
+import ShiroPerms from 'shiro-perms';
+```
+### Documentation API
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
+* https://rjblopes.github.io/shiro-perms
 
-| Param | Type | Default |
-| --- | --- | --- |
-| [claims] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> |
+### Installing
 
-<a name="ShiroPerms+check"></a>
+Use:
 
-### shiroPerms.check([permissions], [any]) ⇒ <code>Boolean</code>
-Verify permissions against current Trie.
-Multiple permissions input may be compared using AND/OR logic operator
-controlled by 'any' parameter.
-Permission in Shiro compact format are not allowed, e.g. 'store:view,edit'.
-Accept multiple claim string with claims separated by space char ' '
+```
+npm i shiro-perms
+```
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-**Returns**: <code>Boolean</code> - Allowed  
+Or
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [permissions] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> | Permisssions to be checked |
-| [any] | <code>Boolean</code> | <code>false</code> | If true, checks for any permission (OR). Checks all permissions otherwise (AND) |
+```
+yarn add shiro-perms
+```
 
-<a name="ShiroPerms+checkAny"></a>
+## Running the tests
 
-### shiroPerms.checkAny([permissions]) ⇒ <code>Boolean</code>
-Verify ANY permissions against current Trie.
-Alias of 'check()' method with flag 'any' set to false.
-Permission in Shiro compact format are not allowed, e.g. 'store:view,edit'.
-Accept multiple claim string with claims separated by space char ' '
+Use:
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-**Returns**: <code>Boolean</code> - Allowed  
+```
+npm run test
+```
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [permissions] | <code>String</code> \| <code>Array.&lt;String&gt;</code> | <code>[]</code> | Permisssions to be checked |
+Or
 
-<a name="ShiroPerms+toString"></a>
+```
+yarn test
+```
+## Usage
+### Create
 
-### shiroPerms.toString() ⇒ <code>String</code>
-Print current claims in single string format
+Using class constructor:
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-<a name="ShiroPerms+load"></a>
+```js
+const perms = new ShiroPerms();
+```
 
-### shiroPerms.load([trie]) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Set internal Trie object. Useful to import permission dumps or
-an external Trie object.
-Accept Trie object in JSON format
+Static methods:
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-**Returns**: [<code>ShiroPerms</code>](#ShiroPerms) - this  
+```js
+const perms = ShiroPerms.from('store:view,edit store:*:1123');
+```
+```js
+const perms = ShiroPerms.from(['store:view,edit', 'store:*:1123']);
+```
+### Check
+Check ALL permissions - AND
 
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [trie] | <code>Object</code> \| <code>String</code> | <code>{}</code> | Trie object or JSON string to load |
+```js
+perms.check('store:view:9999')
+// True
 
-<a name="ShiroPerms+dump"></a>
+perms.check('store:view store:edit:*')
+// True
 
-### shiroPerms.dump() ⇒ <code>String</code>
-Dumps current Trie to JSON.
+perms.check(['store:view', 'store:edit:9999'])
+// False
+```
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-**Returns**: <code>String</code> - Trie in JSON format  
-<a name="ShiroPerms+dumpBin"></a>
+Check ANY permissions - OR
 
-### shiroPerms.dumpBin() ⇒ <code>Buffer</code>
-Dumps current Trie to bin format (msgpack5).
+```js
+perms.checkAny(['store:view', 'store:edit:9999'])
+// True
+```
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
-<a name="ShiroPerms+loadBin"></a>
+### Add
+....
+### Remove
+...
+### Reset
+...
 
-### shiroPerms.loadBin(data) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Loads Trie from a bin format data (msgpack5)
+## Built With
 
-**Kind**: instance method of [<code>ShiroPerms</code>](#ShiroPerms)  
+* [msgpack5](https://github.com/mcollina/msgpack5) - A msgpack v5 implementation for node.js
 
-| Param | Type | Description |
-| --- | --- | --- |
-| data | <code>Buffer</code> | Data to load |
 
-<a name="ShiroPerms.from"></a>
+## Author
 
-### ShiroPerms.from(...claims) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Creates new ShiroPerms object from a list of claims
+* **Ricardo Lopes** - *Initial work* - [rjblopes](https://github.com/rjblopes)
 
-**Kind**: static method of [<code>ShiroPerms</code>](#ShiroPerms)  
+## License
 
-| Param | Type | Description |
-| --- | --- | --- |
-| ...claims | <code>String</code> \| <code>Array.&lt;String&gt;</code> | Claims list |
+This project is licensed under the MIT License
 
-<a name="ShiroPerms.fromTrie"></a>
+## Acknowledgments
 
-### ShiroPerms.fromTrie([trie]) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Creates new ShiroPerms object from a Trie object
-
-**Kind**: static method of [<code>ShiroPerms</code>](#ShiroPerms)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [trie] | <code>Object</code> \| <code>String</code> | <code>{}</code> | Trie object or JSON |
-
-<a name="ShiroPerms.fromBin"></a>
-
-### ShiroPerms.fromBin(data) ⇒ [<code>ShiroPerms</code>](#ShiroPerms)
-Creates new ShiroPerms object from a Trie object in bin format (msgpack5)
-
-**Kind**: static method of [<code>ShiroPerms</code>](#ShiroPerms)  
-
-| Param | Type |
-| --- | --- |
-| data | <code>Buffer</code> |
+* Inspired by: https://github.com/entrecode/shiro-trie
