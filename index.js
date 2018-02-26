@@ -254,26 +254,71 @@ class ShiroPerms {
 
   /**
    * Method to add a branch in a node of the Trie.
+   * This discards or overwrite redudant branches.
    * @private
    * @param  {Object}   node          Root node
    * @param  {String[]} [elements=[]] Child nodes elements
+   * @param  {Object}   [parentNode] Parent trie node
+   * @param  {String}   [parentTerm] Parent trie node term
    */
-  _insertChild(node, elements = []) {
+  _insertChild(node, elements = [], parentNode, parentTerm) {
     const parts = [ ...elements ];
     const part = parts.shift();
+
     if (part) {
       part.split(',').forEach((term) => {
+        // Check redundacy
+        if (
+          node['*'] &&
+          ( !Object.keys(node['*']).length || !!node['*'][parts[0]] )
+        ) {
+          // discard since new terms are redundant
+          return;
+        }
+
+        // Deals with last part of new claim
+        if (!parts.length) {
+          if (term === '*') {
+            // overwrite parent node or the whole trie
+            parentTerm ?
+              parentNode[parentTerm] = { '*': {} } :
+              this._trie = { '*': {} };
+            return;
+          }
+          // last part. add * term if not itself and
+          // overwrite child node
+          node[term]= { '*': {} };
+          return;
+        }
+
+        // Deals with middle terms in new claim
+
+        // Adding a '*' in the middle
+        if (term === '*') {
+          // discard already existing redundant terms in the trie
+          const newTerms = {};
+          Object.keys(node).forEach((key) => {
+            Object.entries(node[key]).forEach(([subKey, val]) => {
+              if (subKey !== parts[0]) {
+                newTerms[key] = {};
+                newTerms[key][subKey] = val;
+              }
+            })
+          });
+
+          newTerms['*'] = node['*'] || {};
+          // 'node' assignment is required to overwrite also the current
+          // processing node
+          parentNode[parentTerm] = node = newTerms;
+        }
+
+        // Adding other than '*' terms
         if (!node[term]) {
           // adds new term
           node[term] = {};
         }
-        if (!parts.length && term !== '*') {
-          // last part. add * term if not itself
-          node[term]['*'] = node[term]['*'] || {};
-        } else {
-          // still more parts to process
-          this._insertChild(node[term], parts);
-        }
+
+        this._insertChild(node[term], parts, node, term);
       });
     }
   }

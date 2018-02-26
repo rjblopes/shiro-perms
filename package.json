@@ -4,7 +4,7 @@
   "description": "Apache Shiro permission style using Trie data structure",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test.js"
+    "test": "mocha tests/"
   },
   "keywords": [
     "shiro",
