@@ -19,6 +19,7 @@
     "mocha": "^4.0.1"
   },
   "dependencies": {
+    "hoek": "4.1.0",
     "msgpack5": "^3.6.0"
   },
   "repository": {

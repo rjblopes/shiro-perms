@@ -15,6 +15,7 @@ describe('Testing ShiroPerms', () => {
 
   describe('testing perms', () => {
     before(() => {
+      perms.reset();
       perms.add([
         'user:*',
         'store:view',
@@ -40,8 +41,8 @@ describe('Testing ShiroPerms', () => {
       it('user:edit', () => expect(perms.check('user:edit')).to.equal(true));
       it('user:edit:1111', () => expect(perms.check('user:edit:1111')).to.equal(true));
       it('user:some:*', () => expect(perms.check('user:some:*')).to.equal(true));
-      it('store', () => { debugger; expect(perms.check('store')).to.equal(true); }); // true
-      it('store:*', () => { debugger; expect(perms.check('store:*')).to.equal(true); });
+      it('store', () => { expect(perms.check('store')).to.equal(true); }); // true
+      it('store:*', () => { expect(perms.check('store:*')).to.equal(true); });
       it('store:edit:1234', () => expect(perms.check('store:edit:1234')).to.equal(true));
     });
 
@@ -49,8 +50,35 @@ describe('Testing ShiroPerms', () => {
       it('user', () => expect(perms.check('user')).to.equal(true));
       it('store:view:*', () => expect(perms.check('store:view:*')).to.equal(true));
       it('store:view:1122', () => expect(perms.check('store:view:1122')).to.equal(true));
-      it('store:admin:*', () => { debugger; expect(perms.check('store:admin:*')).to.equal(false); }); // true
-      it('store:admin', () => { debugger; expect(perms.check('store:admin')).to.equal(true) }); // true
+      it('store:admin:*', () => { expect(perms.check('store:admin:*')).to.equal(false); }); // true
+      it('store:admin', () => { expect(perms.check('store:admin')).to.equal(true) }); // true
     });
+  });
+
+  describe('testing compact perms', () => {
+    before(() => {
+      perms.reset();
+      perms.add([
+        'user:*',
+        'store:view',
+        'store:edit',
+        'store:admin',
+        'place:admin:11123',
+        'place:*:11123'
+      ]);
+    });
+
+    it('should compact', () => {
+      expect(perms.toString().split(' ')).to.have.members(['user', 'store:admin,view,edit', 'place:*:11123']);
+    });
+
+
+    it('should compute to the same trie', () => {
+      const newPerms = ShiroPerms.from(perms.toString())
+
+      expect(newPerms.trie).to.deep.equal(perms.trie);
+    });
+
+
   });
 });

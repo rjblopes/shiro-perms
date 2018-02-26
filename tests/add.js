@@ -12,7 +12,7 @@ describe('Testing Compact Add', () => {
         'sto:viw:4231',
         'sto:edt:4231'
       ]);
-      debugger;
+
       perms.add('*');
 
       expect(perms.claims).to.have.members(['*']);

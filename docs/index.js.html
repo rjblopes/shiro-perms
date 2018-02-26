@@ -26,7 +26,8 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>const msgpack = require('msgpack5');
+            <pre class="prettyprint source linenums"><code>const { deepEqual } = require('hoek')
+const msgpack = require('msgpack5');
 const { encode, decode } = msgpack();
 
 /**
@@ -93,23 +94,7 @@ class ShiroPerms {
    * @type {String[]}
    */
   get claims() {
-    const allClaims = [];
-    // Internal method to flat the trie into an array of strings
-    const reduce = (claim, node) => {
-      const claims = Object.keys(node);
-      if (!claims.length) {
-        allClaims.push(claim);
-        return;
-      }
-      claims.forEach((part) => {
-        reduce(claim + ':' + part, node[part]);
-      });
-    };
-
-    Object.keys(this._trie).forEach((part) => {
-      reduce(part, this._trie[part]);
-    });
-    return allClaims;
+    return this._claims();
   }
 
   set claims(claims) {
@@ -224,7 +209,7 @@ class ShiroPerms {
    * @return {String}
    */
   toString() {
-    return this.claims.join(' ');
+    return this._compactClaims().join(' ');
   }
 
   /**
@@ -282,26 +267,71 @@ class ShiroPerms {
 
   /**
    * Method to add a branch in a node of the Trie.
+   * This discards or overwrite redudant branches.
    * @private
    * @param  {Object}   node          Root node
    * @param  {String[]} [elements=[]] Child nodes elements
+   * @param  {Object}   [parentNode] Parent trie node
+   * @param  {String}   [parentTerm] Parent trie node term
    */
-  _insertChild(node, elements = []) {
+  _insertChild(node, elements = [], parentNode, parentTerm) {
     const parts = [ ...elements ];
     const part = parts.shift();
+
     if (part) {
       part.split(',').forEach((term) => {
+        // Check redundacy
+        if (
+          node['*'] &amp;&amp;
+          ( !Object.keys(node['*']).length || !!node['*'][parts[0]] )
+        ) {
+          // discard since new terms are redundant
+          return;
+        }
+
+        // Deals with last part of new claim
+        if (!parts.length) {
+          if (term === '*') {
+            // overwrite parent node or the whole trie
+            parentTerm ?
+              parentNode[parentTerm] = { '*': {} } :
+              this._trie = { '*': {} };
+            return;
+          }
+          // last part. add * term if not itself and
+          // overwrite child node
+          node[term]= { '*': {} };
+          return;
+        }
+
+        // Deals with middle terms in new claim
+
+        // Adding a '*' in the middle
+        if (term === '*') {
+          // discard already existing redundant terms in the trie
+          const newTerms = {};
+          Object.keys(node).forEach((key) => {
+            Object.entries(node[key]).forEach(([subKey, val]) => {
+              if (subKey !== parts[0]) {
+                newTerms[key] = {};
+                newTerms[key][subKey] = val;
+              }
+            })
+          });
+
+          newTerms['*'] = node['*'] || {};
+          // 'node' assignment is required to overwrite also the current
+          // processing node
+          parentNode[parentTerm] = node = newTerms;
+        }
+
+        // Adding other than '*' terms
         if (!node[term]) {
           // adds new term
           node[term] = {};
         }
-        if (!parts.length &amp;&amp; term !== '*') {
-          // last part. add * term if not itself
-          node[term]['*'] = node[term]['*'] || {};
-        } else {
-          // still more parts to process
-          this._insertChild(node[term], parts);
-        }
+
+        this._insertChild(node[term], parts, node, term);
       });
     }
   }
@@ -340,6 +370,86 @@ class ShiroPerms {
     // i.e full match. Else no match.
     return !Object.keys(node).length;
   }
+
+  /**
+   * Method used to transverse the trie and produce a list of claims.
+   * Reversed option is used internally to produce a compact list of claims.
+   * @param  {Boolean} [reversed=false] If true, claims are output in backwards
+   * @return {String[]} List of claims present in the trie
+   */
+  _claims(reversed = false) {
+    const allClaims = [];
+    // Internal method to flat the trie into an array of strings
+    const reduce = (claim, node) => {
+      const claims = Object.keys(node);
+      if (!claims.length) {
+        allClaims.push(!reversed ? claim : claim.slice(2) || claim);
+        return;
+      }
+      claims.forEach((part) => {
+        reduce(
+          !reversed ? `${claim}:${part}` : `${part}:${claim}`,
+          node[part]
+        );
+      });
+    };
+
+    Object.keys(this._trie).forEach((part) => {
+      reduce(part, this._trie[part]);
+    });
+    return allClaims;
+  }
+
+  _compactClaims() {
+    // List of inverted claims
+    const _reverse = this._claims(true);
+    const _inverted = ShiroPerms.from(_reverse);
+
+    _inverted._trie = compress(_inverted.trie);
+    return _inverted._claims(true);
+  }
+}
+
+/**
+ * Recursive method to compute a compressed trie object.
+ * The resulting trie is not suitable for permission checks.
+ * Used internally to produce a compact string representation of
+ * claims in the trie.
+ * @private
+ * @param  {Object} node Root trie node
+ * @return {Object} New trie object
+ */
+function compress(node) {
+  const _out = {};
+  let _keys = Object.keys(node);
+
+  while (_keys.length > 0) {
+    // Working key
+    const _key = _keys.pop();
+    // Keys that will be written to the output
+    const _commonKeys = [_key];
+    // Key left for next iteration
+    const _nextKeys = [];
+
+    // Compare with other keys
+    _keys.forEach((_otherKey) => {
+      if (deepEqual(node[_key], node[_otherKey])) {
+        // Redudant. Can be compacted
+        _commonKeys.push(_otherKey);
+      } else {
+        // Left for next iteration
+        _nextKeys.push(_otherKey);
+      }
+    });
+
+    // Write common key
+    _out[_commonKeys.join(',')] = compress(node[_key]);
+
+    // Prepare next iteration
+    _keys = _nextKeys;
+  }
+
+  return _out;
 }
 
 module.exports = ShiroPerms;
@@ -359,7 +469,7 @@ module.exports = ShiroPerms;
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Sat Dec 30 2017 20:25:04 GMT+0000 (WET)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.5.5</a> on Mon Feb 26 2018 16:41:56 GMT+0000 (WET)
 </footer>
 
 <script> prettyPrint(); </script>

@@ -1,3 +1,4 @@
+const { deepEqual } = require('hoek')
 const msgpack = require('msgpack5');
 const { encode, decode } = msgpack();
 
@@ -65,23 +66,7 @@ class ShiroPerms {
    * @type {String[]}
    */
   get claims() {
-    const allClaims = [];
-    // Internal method to flat the trie into an array of strings
-    const reduce = (claim, node) => {
-      const claims = Object.keys(node);
-      if (!claims.length) {
-        allClaims.push(claim);
-        return;
-      }
-      claims.forEach((part) => {
-        reduce(claim + ':' + part, node[part]);
-      });
-    };
-
-    Object.keys(this._trie).forEach((part) => {
-      reduce(part, this._trie[part]);
-    });
-    return allClaims;
+    return this._claims();
   }
 
   set claims(claims) {
@@ -196,7 +181,7 @@ class ShiroPerms {
    * @return {String}
    */
   toString() {
-    return this.claims.join(' ');
+    return this._compactClaims().join(' ');
   }
 
   /**
@@ -357,6 +342,86 @@ class ShiroPerms {
     // i.e full match. Else no match.
     return !Object.keys(node).length;
   }
+
+  /**
+   * Method used to transverse the trie and produce a list of claims.
+   * Reversed option is used internally to produce a compact list of claims.
+   * @param  {Boolean} [reversed=false] If true, claims are output in backwards
+   * @return {String[]} List of claims present in the trie
+   */
+  _claims(reversed = false) {
+    const allClaims = [];
+    // Internal method to flat the trie into an array of strings
+    const reduce = (claim, node) => {
+      const claims = Object.keys(node);
+      if (!claims.length) {
+        allClaims.push(!reversed ? claim : claim.slice(2) || claim);
+        return;
+      }
+      claims.forEach((part) => {
+        reduce(
+          !reversed ? `${claim}:${part}` : `${part}:${claim}`,
+          node[part]
+        );
+      });
+    };
+
+    Object.keys(this._trie).forEach((part) => {
+      reduce(part, this._trie[part]);
+    });
+    return allClaims;
+  }
+
+  _compactClaims() {
+    // List of inverted claims
+    const _reverse = this._claims(true);
+    const _inverted = ShiroPerms.from(_reverse);
+
+    _inverted._trie = compress(_inverted.trie);
+    return _inverted._claims(true);
+  }
+}
+
+/**
+ * Recursive method to compute a compressed trie object.
+ * The resulting trie is not suitable for permission checks.
+ * Used internally to produce a compact string representation of
+ * claims in the trie.
+ * @private
+ * @param  {Object} node Root trie node
+ * @return {Object} New trie object
+ */
+function compress(node) {
+  const _out = {};
+  let _keys = Object.keys(node);
+
+  while (_keys.length > 0) {
+    // Working key
+    const _key = _keys.pop();
+    // Keys that will be written to the output
+    const _commonKeys = [_key];
+    // Key left for next iteration
+    const _nextKeys = [];
+
+    // Compare with other keys
+    _keys.forEach((_otherKey) => {
+      if (deepEqual(node[_key], node[_otherKey])) {
+        // Redudant. Can be compacted
+        _commonKeys.push(_otherKey);
+      } else {
+        // Left for next iteration
+        _nextKeys.push(_otherKey);
+      }
+    });
+
+    // Write common key
+    _out[_commonKeys.join(',')] = compress(node[_key]);
+
+    // Prepare next iteration
+    _keys = _nextKeys;
+  }
+
+  return _out;
 }
 
 module.exports = ShiroPerms;
