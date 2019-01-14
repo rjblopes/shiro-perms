@@ -285,7 +285,9 @@ class ShiroPerms {
           Object.keys(node).forEach((key) => {
             Object.entries(node[key]).forEach(([subKey, val]) => {
               if (subKey !== parts[0]) {
-                newTerms[key] = {};
+                if (!newTerms[key]) {
+                  newTerms[key] = {};
+                }
                 newTerms[key][subKey] = val;
               }
             })
