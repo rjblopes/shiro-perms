@@ -159,9 +159,9 @@ ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
 
-msgpack5@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/msgpack5/-/msgpack5-3.6.0.tgz#13912ee47cb0ad037f70def7924ebf38afa19b4f"
+msgpack5@^3.6.1:
+  version "3.6.1"
+  resolved "https://registry.yarnpkg.com/msgpack5/-/msgpack5-3.6.1.tgz#dd3293d9a3b476d0e2639e0681464b825db2c9ed"
   dependencies:
     bl "^1.2.1"
     inherits "^2.0.3"
