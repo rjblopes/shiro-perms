@@ -1,4 +1,4 @@
-const { deepEqual } = require('hoek')
+const _ = require('lodash')
 const msgpack = require('msgpack5');
 const { encode, decode } = msgpack();
 
@@ -407,7 +407,7 @@ function compress(node) {
 
     // Compare with other keys
     _keys.forEach((_otherKey) => {
-      if (deepEqual(node[_key], node[_otherKey])) {
+      if (_.isEqual(node[_key], node[_otherKey])) {
         // Redudant. Can be compacted
         _commonKeys.push(_otherKey);
       } else {
