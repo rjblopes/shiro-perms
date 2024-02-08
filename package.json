@@ -16,7 +16,7 @@
   "author": "Ricardo Lopes <ricardo.lopes@ikual.com>",
   "license": "MIT",
   "devDependencies": {
-    "chai": "^4.1.2",
+    "chai": "4.4.1",
     "mocha": "^10.2.0"
   },
   "dependencies": {
@@ -30,5 +30,8 @@
   "bugs": {
     "url": "https://github.com/rjblopes/shiro-perms/issues"
   },
-  "homepage": "https://github.com/rjblopes/shiro-perms#readme"
+  "homepage": "https://github.com/rjblopes/shiro-perms#readme",
+  "resolutions": {
+    "minimatch": "^5.0.1"
+  }
 }
