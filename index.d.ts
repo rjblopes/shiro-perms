@@ -1,5 +1,5 @@
 declare module 'shiro-perms' {
-  declare class ShiroPerms {
+  class ShiroPerms {
     constructor(perms?: string | string[])
 
     add(perms: string | string[]): boolean
@@ -12,12 +12,12 @@ declare module 'shiro-perms' {
     toString(): string
   }
 
-  declare function add(perms: string | string[]): boolean
-  declare function check(perms: string | string[]): boolean
-  declare function checkAny(perms: string | string[]): boolean
-  declare function from(perms: string | string[]): ShiroPerms
-  declare function load(obj: Record<string, unknown> | string): ShiroPerms
-  declare function remove(perms: string | string[]): ShiroPerms
-  declare function reset(): ShiroPerms
-  declare function toString(): string
+  function add(perms: string | string[]): boolean
+  function check(perms: string | string[]): boolean
+  function checkAny(perms: string | string[]): boolean
+  function from(perms: string | string[]): ShiroPerms
+  function load(obj: Record<string, unknown> | string): ShiroPerms
+  function remove(perms: string | string[]): ShiroPerms
+  function reset(): ShiroPerms
+  function toString(): string
 }
